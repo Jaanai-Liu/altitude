@@ -107,7 +107,7 @@ fun AltitudeScreen(
                     lineTo(center.x + 16.dp.toPx(), canvasHeight - 26.dp.toPx()) // Base Right
                     close()
                 }
-                drawPath(path = southPath, color = Color.White)
+                drawPath(path = southPath, color = Color.White.copy(alpha = 0.3f))
                 // Draw 'S' inside the triangle
                 drawContext.canvas.nativeCanvas.drawText("S", center.x, canvasHeight - 10.dp.toPx(), textPaintS)
             }
