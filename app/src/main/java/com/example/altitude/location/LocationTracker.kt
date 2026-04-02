@@ -3,32 +3,36 @@ package com.example.altitude.location
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
 
 class LocationTracker(context: Context) {
 
-    // Initialize the official Google Play Services location client
-    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-    /**
-     * Fetches the most recent and accurate location from the GPS sensor.
-     * * @param onLocationReceived Callback triggered when location is retrieved successfully or fails.
-     */
-    @SuppressLint("MissingPermission") // Permissions will be handled in the UI layer before calling this
-    fun getCurrentLocation(onLocationReceived: (Location?) -> Unit) {
-        val cancellationTokenSource = CancellationTokenSource()
+    @SuppressLint("MissingPermission")
+    fun startTracking(onLocationReceived: (Location) -> Unit) {
+        val locationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                // Only raw hardware GPS data will trigger this now
+                onLocationReceived(location)
+            }
 
-        fusedLocationClient.getCurrentLocation(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            cancellationTokenSource.token
-        ).addOnSuccessListener { location: Location? ->
-            // Successfully retrieved location (contains altitude, latitude, longitude, speed)
-            onLocationReceived(location)
-        }.addOnFailureListener {
-            // Failed to retrieve location
-            onLocationReceived(null)
+            override fun onProviderDisabled(provider: String) {}
+            override fun onProviderEnabled(provider: String) {}
+            @Deprecated("Deprecated in Java")
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+        }
+
+        // Strictly use the physical GPS hardware for maximum accuracy
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                2000L, // Update every 2 seconds
+                1f,    // Update every 1 meter of movement
+                locationListener
+            )
         }
     }
 }
