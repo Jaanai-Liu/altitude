@@ -138,6 +138,7 @@ fun AltitudeScreen(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal
                 )
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = altitude,
                     color = Color.White,

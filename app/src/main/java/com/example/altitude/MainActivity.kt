@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,20 +23,29 @@ import com.example.altitude.ui.AltitudeScreen
 import com.example.altitude.ui.theme.AltitudeTheme
 
 class MainActivity : ComponentActivity() {
+
+    private var currentAzimuth = mutableFloatStateOf(0f)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val locationTracker = LocationTracker(this)
-        val compassTracker = CompassTracker(this) // Initialize Compass
+        val compassTracker = CompassTracker(this)
+
+        // Start compass immediately on launch (Zero delay)
+        compassTracker.startTracking { azimuth ->
+            currentAzimuth.floatValue = azimuth
+        }
 
         enableEdgeToEdge()
         setContent {
             AltitudeTheme {
+                // REQUIREMENT: Keep altitude text short ("-- m") to avoid breaking the large UI font.
+                // Move the long "searching" status text to the bottom latitude field instead.
                 var altitudeText by remember { mutableStateOf("-- m") }
                 var speedText by remember { mutableStateOf("SPEED -- km/h") }
-                var latText by remember { mutableStateOf("LAT --") }
-                var lonText by remember { mutableStateOf("LON --") }
-                var currentAzimuth by remember { mutableStateOf(0f) } // Compass State
+                var latText by remember { mutableStateOf("SEARCHING SATELLITES...") }
+                var lonText by remember { mutableStateOf("") }
 
                 val permissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -44,17 +54,26 @@ class MainActivity : ComponentActivity() {
 
                     if (isGranted) {
                         locationTracker.startTracking { location ->
-                            altitudeText = "${location.altitude.toInt()} m"
+                            // Update altitude only if we have a valid 3D fix (> 0.0)
+                            if (location.altitude == 0.0) {
+                                altitudeText = "-- m"
+                            } else {
+                                altitudeText = "${location.altitude.toInt()} m"
+                            }
+
+                            // Always update speed and coordinates when we have a fix
                             speedText = "SPEED ${(location.speed * 3.6).toInt()} km/h"
                             latText = "LAT ${String.format("%.4f", location.latitude)}°"
                             lonText = "LON ${String.format("%.4f", location.longitude)}°"
                         }
                     } else {
-                        altitudeText = "DENIED"
+                        // If denied, keep altitude short and show error at the bottom
+                        altitudeText = "-- m"
+                        latText = "PERMISSION DENIED"
+                        lonText = ""
                     }
                 }
 
-                // Trigger location permissions and start compass on launch
                 LaunchedEffect(Unit) {
                     permissionLauncher.launch(
                         arrayOf(
@@ -62,11 +81,6 @@ class MainActivity : ComponentActivity() {
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
                     )
-
-                    // Start listening to rotation sensor
-                    compassTracker.startTracking { azimuth ->
-                        currentAzimuth = azimuth
-                    }
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -76,7 +90,7 @@ class MainActivity : ComponentActivity() {
                         speed = speedText,
                         lat = latText,
                         lon = lonText,
-                        azimuth = currentAzimuth // Pass the live azimuth to the UI
+                        azimuth = currentAzimuth.floatValue
                     )
                 }
             }
