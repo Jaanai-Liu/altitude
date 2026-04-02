@@ -55,4 +55,8 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // add gps services by jaanai-liu
+    // implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation(libs.play.services.location)
 }
