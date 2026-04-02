@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.altitude.location.LocationTracker
+import com.example.altitude.sensor.CompassTracker
 import com.example.altitude.ui.AltitudeScreen
 import com.example.altitude.ui.theme.AltitudeTheme
 
@@ -25,15 +26,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val locationTracker = LocationTracker(this)
+        val compassTracker = CompassTracker(this) // Initialize Compass
 
         enableEdgeToEdge()
         setContent {
             AltitudeTheme {
-                // Use short strings to prevent UI layout breaking
                 var altitudeText by remember { mutableStateOf("-- m") }
                 var speedText by remember { mutableStateOf("SPEED -- km/h") }
                 var latText by remember { mutableStateOf("LAT --") }
                 var lonText by remember { mutableStateOf("LON --") }
+                var currentAzimuth by remember { mutableStateOf(0f) } // Compass State
 
                 val permissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -52,6 +54,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Trigger location permissions and start compass on launch
                 LaunchedEffect(Unit) {
                     permissionLauncher.launch(
                         arrayOf(
@@ -59,6 +62,11 @@ class MainActivity : ComponentActivity() {
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
                     )
+
+                    // Start listening to rotation sensor
+                    compassTracker.startTracking { azimuth ->
+                        currentAzimuth = azimuth
+                    }
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -67,7 +75,8 @@ class MainActivity : ComponentActivity() {
                         altitude = altitudeText,
                         speed = speedText,
                         lat = latText,
-                        lon = lonText
+                        lon = lonText,
+                        azimuth = currentAzimuth // Pass the live azimuth to the UI
                     )
                 }
             }
