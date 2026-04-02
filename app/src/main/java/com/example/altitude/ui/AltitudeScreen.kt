@@ -16,8 +16,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun AltitudeScreen(modifier: Modifier = Modifier) {
-    // 1. Vertical gradient background (Top: Teal, Bottom: Sand)
+fun AltitudeScreen(
+    modifier: Modifier = Modifier,
+    altitude: String = "1081 m",      // Added dynamic parameter
+    speed: String = "SPEED 5 km/h",   // Added dynamic parameter
+    lat: String = "LAT 26°36'7\" N",  // Added dynamic parameter
+    lon: String = "LON 106°45'11\" E" // Added dynamic parameter
+) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(
             Color(0xFF4DB6AC),
@@ -25,15 +30,12 @@ fun AltitudeScreen(modifier: Modifier = Modifier) {
         )
     )
 
-    // 2. Base full-screen background
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(gradientBrush),
         contentAlignment = Alignment.Center
     ) {
-
-        // 3. Center red dial
         Box(
             modifier = Modifier
                 .size(300.dp)
@@ -45,28 +47,30 @@ fun AltitudeScreen(modifier: Modifier = Modifier) {
                 Text(text = "CURRENT ALTITUDE", color = Color.White, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // Use the variable here
                 Text(
-                    text = "1081 m",
+                    text = altitude,
                     color = Color.White,
                     fontSize = 64.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "SPEED 5 km/h", color = Color.White, fontSize = 14.sp)
+                // Use the variable here
+                Text(text = speed, color = Color.White, fontSize = 14.sp)
             }
         }
 
-        // 4. Bottom coordinate information
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "LAT 26°36'7\" N", color = Color.White, fontSize = 18.sp)
+            // Use the variables here
+            Text(text = lat, color = Color.White, fontSize = 18.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "LON 106°45'11\" E", color = Color.White, fontSize = 18.sp)
+            Text(text = lon, color = Color.White, fontSize = 18.sp)
         }
     }
 }
