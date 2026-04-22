@@ -159,6 +159,7 @@ fun AltitudeScreen(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
                 .padding(bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
